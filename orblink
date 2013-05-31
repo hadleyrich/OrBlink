@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+"""
+OrBlink by Hadley Rich <hads@nice.net.nz>
+
+BSD License
+"""
+
+import sys
+try:
+    import webcolors
+except ImportError:
+    webcolors = None
+try:
+    import usb
+    from usb.util import *
+except ImportError:
+    sys.stderr.write("The pyusb module is required.\n")
+    sys.exit(2)
+
+CUSTOM_RQ_SET_RED = 3
+CUSTOM_RQ_SET_GREEN = 4
+CUSTOM_RQ_SET_BLUE = 5
+
+class OrBlink(object):
+    reqtype = build_request_type(CTRL_OUT, CTRL_TYPE_VENDOR, CTRL_RECIPIENT_DEVICE)
+
+    def __init__(self, vendor_id, product_id):
+        self.device = usb.core.find(idVendor=vendor_id, idProduct=product_id)
+
+    @property
+    def valid(self):
+        if self.device \
+        and self.manufacturer_name == 'nicegear.co' \
+        and self.product_name == 'OrBlink':
+            return True
+        return False
+
+    @property
+    def manufacturer_name(self):
+        return usb.util.get_string(self.device, 256, 1)
+
+    @property
+    def product_name(self):
+        return usb.util.get_string(self.device, 256, 2)
+
+    def set_color(self, r, g, b):
+        self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_RED, r)
+        self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_GREEN, g)
+        self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_BLUE, b)
+
+if __name__ == '__main__':
+
+    orb = OrBlink(vendor_id=0x16c0, product_id=0x05df)
+    if not orb.valid:
+        sys.stderr.write("Couldn't find OrBlink device.\n")
+        sys.exit(1)
+
+    if len(sys.argv) == 2:
+        if not webcolors:
+            sys.stderr.write("Named and hex colors require the 'webcolors' module.\n")
+            sys.exit(2)
+        if sys.argv[1].startswith('#'):
+            try:
+                r, g, b = webcolors.hex_to_rgb(sys.argv[1])
+            except ValueError:
+                sys.stderr.write("Couldn't work out hex color.\n")
+                sys.exit(2)
+        else:
+            try:
+                r, g, b = webcolors.name_to_rgb(sys.argv[1])
+            except ValueError:
+                sys.stderr.write("Couldn't work out named color.\n")
+                sys.exit(2)
+        orb.set_color(r, g, b)
+    elif len(sys.argv) == 4:
+        try:
+            r = int(sys.argv[1])
+            g = int(sys.argv[2])
+            b = int(sys.argv[3])
+        except:
+            sys.stderr.write("Couldn't work out RGB color.\n")
+            sys.exit(2)
+        orb.set_color(r, g, b)
+
