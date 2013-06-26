@@ -19,9 +19,12 @@ Features:
 
 LICENSE
 -------
-Licensed under the TAPR Open Hardware License (www.tapr.org/OHL).
-See the "LICENSE" file within this repository for the full license
-in plain text format.
+The hardware design files are licensed under the TAPR Open Hardware License
+(www.tapr.org/OHL). See the "hardware/LICENSE" file within this repository
+for the full license in plain text format.
+
+The software is licensed under various open source licenses, please see the
+LICENSE file within each directory or header in the source code files.
 
 INSTALLATION
 ------------
