@@ -21,7 +21,7 @@ try:
     import usb
     from usb.util import *
 except ImportError:
-    sys.stderr.write("The pyusb module is required.\n")
+    sys.stderr.write("The pyusb module (version 1.0.0a0 or later) is required.\n")
     sys.exit(2)
 
 CUSTOM_RQ_SET_RED = 3
