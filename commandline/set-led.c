@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     pid = rawPid[1] * 256 + rawPid[0];
     /* The following function is in opendevice.c: */
     if(usbOpenDevice(&handle, vid, vendor, pid, product, NULL, NULL, NULL) != 0){
-        fprintf(stderr, "Could not find USB device \"%s\" with vid=0x%x pid=0x%x\n", product, vid, pid);
+        fprintf(stderr, "Could not find USB device \"%s\" with vid=0x%x pid=0x%x\n (or current user doesn't have permission to access device.)", product, vid, pid);
         exit(1);
     }
 
