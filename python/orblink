@@ -18,19 +18,23 @@ try:
 except ImportError:
     webcolors = None
 try:
-    import usb.core
-    from usb.util import build_request_type, CTRL_OUT, CTRL_TYPE_VENDOR, CTRL_RECIPIENT_DEVICE
+    import usb
     import usb.backend.libusb1 as libusb1
 except ImportError:
-    sys.stderr.write("The pyusb module (version 1.0 or later) is required.\n")
+    sys.stderr.write("The pyusb module (version 1.0.0b2 or later) is required.\n")
     sys.exit(2)
+else:
+    if usb.__version__ < '1.0.0b2':
+        sys.stderr.write("The pyusb module (version 1.0.0b2 or later) is required.\n")
+        sys.exit(2)
 
 CUSTOM_RQ_SET_RED = 3
 CUSTOM_RQ_SET_GREEN = 4
 CUSTOM_RQ_SET_BLUE = 5
 
 class OrBlink(object):
-    reqtype = build_request_type(CTRL_OUT, CTRL_TYPE_VENDOR, CTRL_RECIPIENT_DEVICE)
+    reqtype = usb.util.build_request_type(
+      usb.util.CTRL_OUT, usb.util.CTRL_TYPE_VENDOR, usb.util.CTRL_RECIPIENT_DEVICE)
 
     def __init__(self, vendor_id, product_id):
         if os.path.exists('/etc/openelec-release'):
@@ -52,11 +56,11 @@ class OrBlink(object):
 
     @property
     def manufacturer_name(self):
-        return usb.util.get_string(self.device, 256, 1)
+        return usb.util.get_string(self.device, 1)
 
     @property
     def product_name(self):
-        return usb.util.get_string(self.device, 256, 2)
+        return usb.util.get_string(self.device, 2)
 
     def set_color(self, r, g, b):
         self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_RED, r)
