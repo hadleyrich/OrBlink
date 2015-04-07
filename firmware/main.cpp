@@ -24,6 +24,7 @@ different port or bit, change the macros below:
 
 
 #include <avr/io.h>
+#include <avr/eeprom.h>
 #include <avr/wdt.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>  /* for sei() */
@@ -58,6 +59,11 @@ PROGMEM const char usbHidReportDescriptor[22] = {    /* USB report descriptor */
  * We don't transfer our data through HID reports, we use custom requests
  * instead.
  */
+
+uint8_t eeprom_r EEMEM = 0;
+uint8_t eeprom_g EEMEM = 0;
+uint8_t eeprom_b EEMEM = 0;
+
 static uint8_t count = 0;
 static volatile uint8_t r = 0;
 static volatile uint8_t g = 0;
@@ -65,6 +71,7 @@ static volatile uint8_t b = 0;
 static uint8_t rb = 0;
 static uint8_t gb = 0;
 static uint8_t bb = 0;
+static uint8_t st = 0;
 
 /* ------------------------------------------------------------------------- */
 
@@ -85,6 +92,9 @@ extern "C" usbMsgLen_t usbFunctionSetup(uchar data[8])
 		case CUSTOM_RQ_SET_BLUE:
 			b = rq->wValue.bytes[0];
 			break;	
+		case CUSTOM_RQ_STORE:
+			st = 1;
+			break;
 		}
     }
 	else
@@ -188,6 +198,10 @@ int main(void)
 {
 	uchar   i;
 
+    r = eeprom_read_byte(&eeprom_r);
+    g = eeprom_read_byte(&eeprom_g);
+    b = eeprom_read_byte(&eeprom_b);
+
     wdt_enable(WDTO_1S);
     /* Even if you don't use the watchdog, turn it off here. On newer devices,
      * the status of the watchdog (on/off, period) is PRESERVED OVER RESET!
@@ -213,7 +227,12 @@ int main(void)
 
     for(;;){                /* main event loop */
 		update_leds();
-		
+		if (st) {
+            eeprom_write_byte(&eeprom_r, r);
+            eeprom_write_byte(&eeprom_g, g);
+            eeprom_write_byte(&eeprom_b, b);
+		    st = 0;
+		}
         wdt_reset();
         usbPoll();
     }

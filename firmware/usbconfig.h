@@ -232,7 +232,7 @@ section at the end of this file).
  * the macros. See the file USBID-License.txt before you assign a name if you
  * use a shared VID/PID.
  */
-/*#define USB_CFG_SERIAL_NUMBER   'N', 'o', 'n', 'e' */
+#define USB_CFG_SERIAL_NUMBER   'N', 'o', 'n', 'e'
 /*#define USB_CFG_SERIAL_NUMBER_LEN   0 */
 /* Same as above for the serial number. If you don't want a serial number,
  * undefine the macros.
