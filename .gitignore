@@ -3,4 +3,5 @@
 *.hex
 *.pyc
 *.pyo
+.venv
 commandline/set-led
