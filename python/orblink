@@ -14,97 +14,46 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 import os, sys
 try:
-    import webcolors
+  import webcolors
 except ImportError:
-    webcolors = None
-try:
-    import usb
-    import usb.backend.libusb1 as libusb1
-except ImportError:
-    sys.stderr.write("The pyusb module (version 1.0.0b2 or later) is required.\n")
-    sys.exit(2)
-else:
-    if usb.__version__ < '1.0.0b2':
-        sys.stderr.write("The pyusb module (version 1.0.0b2 or later) is required.\n")
-        sys.exit(2)
+  webcolors = None
 
-CUSTOM_RQ_SET_RED = 3
-CUSTOM_RQ_SET_GREEN = 4
-CUSTOM_RQ_SET_BLUE = 5
-CUSTOM_RQ_STORE = 6
-
-class OrBlink(object):
-    reqtype = usb.util.build_request_type(
-      usb.util.CTRL_OUT, usb.util.CTRL_TYPE_VENDOR, usb.util.CTRL_RECIPIENT_DEVICE)
-
-    def __init__(self, vendor_id, product_id):
-        if os.path.exists('/etc/openelec-release'):
-            # Hack for OpenELEC so it can find the library
-            import ctypes
-            def loader(find_library):
-                return ctypes.CDLL('libusb-1.0.so')
-            libusb1._load_library=loader
-
-        self.device = usb.core.find(idVendor=vendor_id, idProduct=product_id)
-
-    @property
-    def valid(self):
-        if self.device \
-        and self.manufacturer_name == 'nicegear.co' \
-        and self.product_name == 'OrBlink':
-            return True
-        return False
-
-    @property
-    def manufacturer_name(self):
-        return usb.util.get_string(self.device, 1)
-
-    @property
-    def product_name(self):
-        return usb.util.get_string(self.device, 2)
-
-    def store(self):
-        self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_STORE, 1)
-
-    def set_color(self, r, g, b):
-        self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_RED, r)
-        self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_GREEN, g)
-        self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_BLUE, b)
+from orblink import *
 
 if __name__ == '__main__':
 
-    orb = OrBlink(vendor_id=0x16c0, product_id=0x05df)
-    if not orb.valid:
-        sys.stderr.write("Couldn't find OrBlink device.\n")
-        sys.exit(1)
+  orb = OrBlink(vendor_id=0x16c0, product_id=0x05df)
+  if not orb.valid:
+    sys.stderr.write("Couldn't find OrBlink device.\n")
+    sys.exit(1)
 
-    if len(sys.argv) == 2:
-        if sys.argv[1] == 'store':
-            orb.store()
-            sys.exit(2)
-        if not webcolors:
-            sys.stderr.write("Named and hex colors require the 'webcolors' module.\n")
-            sys.exit(2)
-        if sys.argv[1].startswith('#'):
-            try:
-                r, g, b = webcolors.hex_to_rgb(sys.argv[1])
-            except ValueError:
-                sys.stderr.write("Couldn't work out hex color.\n")
-                sys.exit(2)
-        else:
-            try:
-                r, g, b = webcolors.name_to_rgb(sys.argv[1])
-            except ValueError:
-                sys.stderr.write("Couldn't work out named color.\n")
-                sys.exit(2)
-        orb.set_color(r, g, b)
-    elif len(sys.argv) == 4:
-        try:
-            r = int(sys.argv[1])
-            g = int(sys.argv[2])
-            b = int(sys.argv[3])
-        except:
-            sys.stderr.write("Couldn't work out RGB color.\n")
-            sys.exit(2)
-        orb.set_color(r, g, b)
+  if len(sys.argv) == 2:
+    if sys.argv[1] == 'store':
+      orb.store()
+      sys.exit(2)
+    if not webcolors:
+      sys.stderr.write("Named and hex colors require the 'webcolors' module.\n")
+      sys.exit(2)
+    if sys.argv[1].startswith('#'):
+      try:
+        r, g, b = webcolors.hex_to_rgb(sys.argv[1])
+      except ValueError:
+        sys.stderr.write("Couldn't work out hex color.\n")
+        sys.exit(2)
+    else:
+      try:
+        r, g, b = webcolors.name_to_rgb(sys.argv[1])
+      except ValueError:
+        sys.stderr.write("Couldn't work out named color.\n")
+        sys.exit(2)
+    orb.set_color(r, g, b)
+  elif len(sys.argv) == 4:
+    try:
+      r = int(sys.argv[1])
+      g = int(sys.argv[2])
+      b = int(sys.argv[3])
+    except:
+      sys.stderr.write("Couldn't work out RGB color.\n")
+      sys.exit(2)
+    orb.set_color(r, g, b)
 
