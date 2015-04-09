@@ -1,4 +1,6 @@
 *.o
 *.elf
 *.hex
+*.pyc
+*.pyo
 commandline/set-led
