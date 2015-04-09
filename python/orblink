@@ -13,6 +13,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 """
 
 import os, sys
+import argparse
 try:
   import webcolors
 except ImportError:
@@ -20,39 +21,44 @@ except ImportError:
 
 from orblink import *
 
-if __name__ == '__main__':
+parser = argparse.ArgumentParser(description='OrBlink control. If --delay or --time are passed then will block until completion or forever.')
+parser.add_argument('--store', help='Store the current color', action='store_true')
+parser.add_argument('val', help='Set color, either named, in hex (#ffffff), or rgb (255 255 255)', nargs='*')
+args = parser.parse_args()
 
-  orb = OrBlink(vendor_id=0x16c0, product_id=0x05df)
-  if not orb.valid:
-    sys.stderr.write("Couldn't find OrBlink device.\n")
-    sys.exit(1)
+orb = OrBlink(vendor_id=0x16c0, product_id=0x05df)
+if not orb.valid:
+  sys.stderr.write("Couldn't find OrBlink device.\n")
+  sys.exit(1)
 
-  if len(sys.argv) == 2:
-    if sys.argv[1] == 'store':
-      orb.store()
-      sys.exit(2)
+if args.store:
+  orb.store()
+
+if args.val:
+  if len(args.val) == 1:
+    color = args.val[0]
     if not webcolors:
       sys.stderr.write("Named and hex colors require the 'webcolors' module.\n")
       sys.exit(2)
-    if sys.argv[1].startswith('#'):
+    if color.startswith('#'):
       try:
-        r, g, b = webcolors.hex_to_rgb(sys.argv[1])
+        r, g, b = webcolors.hex_to_rgb(color)
       except ValueError:
         sys.stderr.write("Couldn't work out hex color.\n")
         sys.exit(2)
     else:
       try:
-        r, g, b = webcolors.name_to_rgb(sys.argv[1])
+        r, g, b = webcolors.name_to_rgb(color)
       except ValueError:
         sys.stderr.write("Couldn't work out named color.\n")
         sys.exit(2)
     orb.set_color(r, g, b)
-  elif len(sys.argv) == 4:
+  elif len(args.val) == 3:
     try:
       r = int(sys.argv[1])
       g = int(sys.argv[2])
       b = int(sys.argv[3])
-    except:
+    except ValueError:
       sys.stderr.write("Couldn't work out RGB color.\n")
       sys.exit(2)
     orb.set_color(r, g, b)
