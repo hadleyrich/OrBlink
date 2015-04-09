@@ -67,3 +67,7 @@ class OrBlink(object):
     self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_GREEN, g)
     self.device.ctrl_transfer(self.reqtype, CUSTOM_RQ_SET_BLUE, b)
 
+def hex_to_rgb(value):
+    value = value.lstrip('#')
+    return tuple(ord(c) for c in value.decode('hex'))
+

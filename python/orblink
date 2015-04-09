@@ -22,6 +22,9 @@ except ImportError:
 from orblink import *
 
 parser = argparse.ArgumentParser(description='OrBlink control. If --delay or --time are passed then will block until completion or forever.')
+parser.add_argument('--color', help='Color to change to', action='append', default=[])
+parser.add_argument('--delay', help='Delay between color change', action='append', default=[])
+parser.add_argument('--time', help='Time between color change', action='append', default=[])
 parser.add_argument('--store', help='Store the current color', action='store_true')
 parser.add_argument('val', help='Set color, either named, in hex (#ffffff), or rgb (255 255 255)', nargs='*')
 args = parser.parse_args()
@@ -37,16 +40,16 @@ if args.store:
 if args.val:
   if len(args.val) == 1:
     color = args.val[0]
-    if not webcolors:
-      sys.stderr.write("Named and hex colors require the 'webcolors' module.\n")
-      sys.exit(2)
     if color.startswith('#'):
       try:
-        r, g, b = webcolors.hex_to_rgb(color)
-      except ValueError:
+        r, g, b = hex_to_rgb(color)
+      except (ValueError, TypeError):
         sys.stderr.write("Couldn't work out hex color.\n")
         sys.exit(2)
     else:
+      if not webcolors:
+        sys.stderr.write("Named colors require the 'webcolors' module.\n")
+        sys.exit(2)
       try:
         r, g, b = webcolors.name_to_rgb(color)
       except ValueError:
@@ -62,4 +65,32 @@ if args.val:
       sys.stderr.write("Couldn't work out RGB color.\n")
       sys.exit(2)
     orb.set_color(r, g, b)
+
+if args.delay:
+  import time
+  i = 0
+  for delay in args.delay:
+    try:
+      delay = float(delay)
+    except ValueError:
+      sys.stderr.write("Couldn't work out delay time.\n")
+      sys.exit(2)
+
+    try:
+      color = args.color[i]
+    except IndexError:
+      try:
+        color = args.color[-1]
+      except IndexError:
+        sys.stderr.write("No color to set.\n")
+        sys.exit(2)
+    try:
+      r, g, b = hex_to_rgb(color)
+    except (ValueError, TypeError):
+      sys.stderr.write("Couldn't work out hex color.\n")
+      sys.exit(2)
+
+    time.sleep(delay)
+    orb.set_color(r, g, b)
+    i += 1
 
